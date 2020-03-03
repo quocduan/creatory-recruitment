@@ -8,7 +8,7 @@ This service tracks video performance. In the database you can find videos for d
 Our goal is to have a simple web application with the following functionality:
 
  - List each video
- - For each video list the measurement made 2 days after the video was created
+ - For each video also show the measurement made *2 days after the video was created*. Do not show any other measurements.
  - Create backend API endpoint to retrieve the videos with relevant measurement
  - Visualize the frontend by using your favorite React components
 
