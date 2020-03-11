@@ -7,7 +7,11 @@ from sqlalchemy import (
     ForeignKey, text
 )
 import os
-
+#import datetime
+from datetime import timedelta, datetime
+from flask import jsonify
+from flask_marshmallow import Marshmallow
+from marshmallow import Schema, fields, pprint
 backend_path = os.path.dirname(os.path.abspath(__file__))
 db_file_path = os.path.join(backend_path, "db.sqlite3")
 
@@ -15,6 +19,19 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_file_path}"
 db = SQLAlchemy(app)
 
+class MeasurementSchema(Schema):
+    id = fields.Int(dump_only=True)
+    dayname = fields.Str()
+    measurement_date = fields.DateTime()
+
+class VideoSchema(Schema):
+    id = fields.Int(dump_only=True)
+    title = fields.Str()
+    # about fields
+    # https://marshmallow.readthedocs.io/en/latest/api_reference.html#marshmallow.fields.List
+    create_date = fields.DateTime()
+
+    measurements = fields.Nested(MeasurementSchema, many=True)
 
 class VideoMeasurement(db.Model):
     __tablename__ = 'video_measurement'
@@ -57,10 +74,16 @@ class Channel(db.Model):
     videos = relationship("Video")
 
 
-# @app.route('/results', methods=['GET'])
-# def results():
-#     return "Results"
+@app.route('/results', methods=['GET'])
+def results():
+    list_video = db.session.query(Video).join(VideoMeasurement).filter(VideoMeasurement.measurement_date <= (datetime.today() - timedelta(days = 2))).all()
 
+    print (list_video)
+
+    full_schema = VideoSchema(many=True)
+    result = full_schema.dump(list_video)
+    print(result)
+    return jsonify({"list_video": result})
 
 if __name__ == '__main__':
     app.run()
